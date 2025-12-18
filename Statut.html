@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statut des services - Installation Echo</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b0f14 0%, #111827 50%, #020617 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+        }
+
+        .global-status-header {
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .global-status-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15), transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity: .4; }
+            50% { opacity: 1; }
+        }
+
+        .global-status-header h1 {
+            font-size: 3em;
+            font-weight: bold;
+            color:#020617;
+            position: relative;
+            z-index:1;
+        }
+
+        .subtitle {
+            font-size:1.2em;
+            margin-top:.5rem;
+            color:#020617;
+            position:relative;
+            z-index:1;
+        }
+
+        .container {
+            max-width:1200px;
+            margin:0 auto;
+            padding:2rem;
+        }
+
+        .section-title {
+            color:#38bdf8;
+            font-size:2em;
+            margin:2rem 0 1.5rem;
+            padding-bottom:.5rem;
+            border-bottom:2px solid rgba(56,189,248,.3);
+        }
+
+        .services-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+            gap:1.5rem;
+            margin-bottom:3rem;
+        }
+
+        .service-card {
+            background: linear-gradient(135deg, rgba(15,23,42,.9), rgba(2,6,23,.9));
+            border-radius:16px;
+            padding:1.5rem;
+            border-left:5px solid;
+            border:1px solid rgba(56,189,248,.2);
+            transition:.3s ease;
+        }
+
+        .service-card:hover {
+            transform:translateY(-6px);
+            box-shadow:0 14px 40px rgba(56,189,248,.35);
+        }
+
+        .service-header {
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:1rem;
+        }
+
+        .service-name {
+            font-size:1.3em;
+            font-weight:bold;
+        }
+
+        .service-status {
+            display:inline-block;
+            padding:.35rem 1rem;
+            border-radius:20px;
+            font-size:.85em;
+            font-weight:bold;
+            margin-top:.4rem;
+            color:#020617;
+        }
+
+        .service-message {
+            color:#cbd5f5;
+            margin-top:.75rem;
+            line-height:1.5;
+        }
+
+        .logs-section {
+            background: linear-gradient(135deg, rgba(15,23,42,.9), rgba(2,6,23,.9));
+            border-radius:16px;
+            padding:2rem;
+            border:1px solid rgba(56,189,248,.2);
+        }
+
+        .log-entry {
+            display:flex;
+            gap:1rem;
+            padding:1rem;
+            border-radius:12px;
+            background: rgba(15,23,42,.6);
+            border-left:4px solid;
+            margin-bottom:1rem;
+            transition:.3s ease;
+        }
+
+        .log-entry:hover {
+            background: rgba(15,23,42,.85);
+            transform:translateX(6px);
+        }
+
+        .log-dot {
+            width:14px;
+            height:14px;
+            border-radius:50%;
+            margin-top:.35rem;
+            box-shadow:0 0 10px currentColor;
+        }
+
+        .log-service {
+            font-weight:bold;
+            color:#38bdf8;
+            margin-bottom:.3rem;
+        }
+
+        .log-message {
+            color:#e5e7eb;
+            margin-bottom:.4rem;
+        }
+
+        .log-time {
+            font-size:.85em;
+            color:#9ca3af;
+        }
+
+        .refresh-info {
+            text-align:center;
+            font-size:.85em;
+            margin-top:1rem;
+            color:#9ca3af;
+        }
+
+        footer {
+            text-align:center;
+            padding:2rem;
+            margin-top:3rem;
+            color:#9ca3af;
+            border-top:1px solid rgba(56,189,248,.2);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="global-status-header" id="globalHeader">
+    <h1>⚙️ Installation Echo</h1>
+    <div class="subtitle" id="globalSubtitle">Chargement de l’état global…</div>
+</div>
+
+<div class="container">
+
+    <h2 class="section-title">📡 État des systèmes</h2>
+    <div class="services-grid" id="services"></div>
+
+    <h2 class="section-title">📂 Journal des événements</h2>
+    <div class="logs-section">
+        <div id="logs"></div>
+        <div class="refresh-info">🔄 Actualisation automatique toutes les 30 secondes</div>
+    </div>
+
+</div>
+
+<footer>
+    © 2025 Installation Echo — Accès restreint
+</footer>
+
+<script>
+async function loadStatus() {
+    const res = await fetch('status.json');
+    const data = await res.json();
+
+    const services = document.getElementById('services');
+    const logs = document.getElementById('logs');
+    services.innerHTML = '';
+    logs.innerHTML = '';
+
+    let global = 'ok';
+
+    data.services.forEach(s => {
+        if (s.icon === '🟡' && global !== 'error') global = 'warn';
+        if (s.icon === '🔴' || s.icon === '🔧') global = 'error';
+
+        services.innerHTML += `
+        <div class="service-card" style="border-left-color:${s.color}">
+            <div class="service-header">
+                <div>
+                    <div class="service-name">${s.name}</div>
+                    <span class="service-status" style="background:${s.gradient}">
+                        ${s.icon} ${s.status}
+                    </span>
+                </div>
+                <div>${s.icon}</div>
+            </div>
+            <div class="service-message">${s.message}</div>
+        </div>`;
+    });
+
+    data.logs.forEach(l => {
+        logs.innerHTML += `
+        <div class="log-entry" style="border-left-color:${l.color}">
+            <span class="log-dot" style="background:${l.color}"></span>
+            <div>
+                <div class="log-service">${l.icon} ${l.service}</div>
+                <div class="log-message">${l.message}</div>
+                <div class="log-time">🕐 ${l.time}</div>
+            </div>
+        </div>`;
+    });
+
+    const header = document.getElementById('globalHeader');
+    const subtitle = document.getElementById('globalSubtitle');
+
+    if (global === 'ok') {
+        header.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+        subtitle.textContent = '🟢 Tous les systèmes sont opérationnels';
+    } else if (global === 'warn') {
+        header.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+        subtitle.textContent = '🟡 Surveillance en cours';
+    } else {
+        header.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+        subtitle.textContent = '🔧 Incident en cours';
+    }
+}
+
+loadStatus();
+setInterval(loadStatus, 30000);
+</script>
+
+</body>
+</html>
