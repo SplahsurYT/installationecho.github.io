@@ -1,0 +1,37 @@
+{
+  "services": [
+    {
+      "name": "Site Web",
+      "status": "Stable",
+      "icon": "🟢",
+      "color": "#008000",
+      "gradient": "linear-gradient(135deg,#22c55e,#16a34a)",
+      "message": "Tous les processus critiques fonctionnent normalement."
+    },
+    {
+      "name": "Discord",
+      "status": "Actif",
+      "icon": "🟢",
+      "color": "#008000",
+      "gradient": "linear-gradient(135deg,#22c55e,#16a34a)",
+      "message": "Connectivité sécurisée et sans perturbation détectée."
+    },
+    {
+      "name": "Roblox",
+      "status": "Création",
+      "icon": "🔧",
+      "color": "#FA5834",
+      "gradient": "linear-gradient(135deg,#f59e0b,#d97706)",
+      "message": "Création du site Roblox."
+    }
+  ],
+  "logs": [
+    {
+      "service": "Discord",
+      "icon": "🟢",
+      "color": "#008000",
+      "message": "Ouvreture du serveur.",
+      "time": "18/12/2025 à 17:30"
+    }
+  ]
+}
